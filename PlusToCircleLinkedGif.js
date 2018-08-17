@@ -118,9 +118,41 @@ class Renderer {
             this.lptc.draw(context)
             cb(context)
             this.lptc.update(() => {
-                endcb(context)
+                endcb()
                 this.running = false
             })
         }
+    }
+}
+
+const GifEncoder = require('gifencoder')
+const Canvas = require('canvas')
+class PlusToCircleLinkedGif {
+    constructor(fn) {
+        this.renderer = new Renderer()
+        this.encoder = new GifEncoder(w, h)
+        this.canvas = new Canvas(w, h)
+        this.context = this.canvas.getContext('2d')
+        this.initEncoder(fn)
+    }
+
+    initCanvas(fn) {
+        this.encoder.createReadStream().pipe(require('fs').createWriteStream(fn))
+        this.encoder.setRepeat(0)
+        this.encoder.setDelay(50)
+    }
+
+    render() {
+        this.encoder.start()
+        this.renderer.render(this.context, (ctx) => {
+            this.encoder.addFrame(ctx)
+        }, () => {
+            this.encoder.end()
+        })
+    }
+
+    static init(fn) {
+        const gif = new PlusToCircleLinkedGif(fn)
+        gif.render()
     }
 }
