@@ -39,8 +39,8 @@ class PTCNode {
         this.state.update(cb)
     }
 
-    startUpdating(cb) {
-        this.state.startUpdating(cb)
+    startUpdating() {
+        this.state.startUpdating()
     }
 
     draw(context) {
@@ -74,5 +74,33 @@ class PTCNode {
         }
         cb()
         return this
+    }
+}
+
+class LinkedPTC {
+    constructor() {
+        this.curr = new PTCNode(0)
+        this.dir = 1
+    }
+
+    draw(context) {
+        this.curr.draw(context)
+    }
+
+    update(cb) {
+        this.curr.update(() => {
+            this.curr = this.curr.getNext(this.dir, () => {
+                this.dir *= -1
+            })
+            if (this.dir == 1 && this.curr.i == 0) {
+                cb()
+            } else {
+                this.startUpdating()
+            }
+        })
+    }
+
+    startUpdating() {
+        this.curr.startUpdating()
     }
 }
