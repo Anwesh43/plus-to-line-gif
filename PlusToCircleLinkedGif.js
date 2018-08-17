@@ -7,7 +7,8 @@ class State {
     }
 
     update(cb) {
-        this.scale += 0.1 * this.dir
+        this.scale += 0.05 * this.dir
+        console.log(this.scale)
         if (Math.abs(this.scale - this.prevScale) > 1) {
             this.scale = this.prevScale + this.dir
             this.dir = 0
@@ -17,7 +18,9 @@ class State {
     }
 
     startUpdating() {
-        this.dir = 1 - 2 * this.prevScale
+        if (this.dir == 0) {
+            this.dir = 1 - 2 * this.prevScale
+        }
     }
 }
 
@@ -44,24 +47,30 @@ class PTCNode {
     }
 
     draw(context) {
-        const gap = w / (node + 1)
+        const gap = w / (nodes + 1)
         var sc1 = Math.min(0.5, this.state.scale) * 2
         const sc2 = Math.min(0.5, Math.max(0, this.state.scale - 0.5)) * 2
-        const factor = 1 - 2 * (this.i % 2)
+        const factor = (this.i % 2)
         sc1 = (1 - sc1) * factor + (1 - factor) * sc1
         context.fillStyle = '#673AB7'
         context.save()
-        context.translate(gap/2 + gap * i + gap * sc2, h/2)
+        context.translate(gap/2 + gap * this.i + gap * sc2, h/2)
+        // context.fillRect(gap*sc2, -gap/6, gap * sc1,gap/3)
         for (var i = 0; i < 4; i++) {
             context.save()
             context.rotate(Math.PI/2 * i)
-            context.fillRect(-gap/4, -gap/8 ,gap/2 * sc1, gap/4 * sc1)
+            context.fillStyle = '#673AB7'
+            context.fillRect(0, -gap/16 ,(gap/4) * sc1, gap/8)
             context.beginPath()
-            context.arc(gap/2 * sc1, 0, gap/4, 0, 2 * Math.PI)
+            context.arc((gap/4) * sc1, 0, gap/16, 0, 2 * Math.PI)
+            context.fillStyle = '#673AB7'
             context.fill()
             context.restore()
         }
         context.restore()
+        if (this.next) {
+            this.next.draw(context)
+        }
     }
 
     getNext(dir, cb) {
@@ -109,6 +118,7 @@ class Renderer {
     constructor() {
         this.running = true
         this.lptc = new LinkedPTC()
+        this.lptc.startUpdating()
     }
 
     render(context, cb, endcb) {
@@ -136,7 +146,7 @@ class PlusToCircleLinkedGif {
         this.initEncoder(fn)
     }
 
-    initCanvas(fn) {
+    initEncoder(fn) {
         this.encoder.createReadStream().pipe(require('fs').createWriteStream(fn))
         this.encoder.setRepeat(0)
         this.encoder.setDelay(50)
@@ -145,6 +155,7 @@ class PlusToCircleLinkedGif {
     render() {
         this.encoder.start()
         this.renderer.render(this.context, (ctx) => {
+            console.log(ctx)
             this.encoder.addFrame(ctx)
         }, () => {
             this.encoder.end()
@@ -156,3 +167,5 @@ class PlusToCircleLinkedGif {
         gif.render()
     }
 }
+
+PlusToCircleLinkedGif.init('test.gif')
