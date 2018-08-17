@@ -104,3 +104,20 @@ class LinkedPTC {
         this.curr.startUpdating()
     }
 }
+
+class Renderer {
+    constructor() {
+        this.running = true
+        this.lptc = new LinkedPTC()
+    }
+
+    render(context, cb, endcb) {
+        context.fillStyle = '#212121'
+        context.fillRect(0, 0, w, h)
+        this.lptc.draw(context)
+        cb(context)
+        this.lptc.update(() => {
+            endcb(context)
+        })
+    }
+}
