@@ -112,12 +112,15 @@ class Renderer {
     }
 
     render(context, cb, endcb) {
-        context.fillStyle = '#212121'
-        context.fillRect(0, 0, w, h)
-        this.lptc.draw(context)
-        cb(context)
-        this.lptc.update(() => {
-            endcb(context)
-        })
+        while(this.running) {
+            context.fillStyle = '#212121'
+            context.fillRect(0, 0, w, h)
+            this.lptc.draw(context)
+            cb(context)
+            this.lptc.update(() => {
+                endcb(context)
+                this.running = false
+            })
+        }
     }
 }
